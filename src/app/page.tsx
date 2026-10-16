@@ -1,69 +1,173 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { OPENING_DOHAS, CHAUPAIS, CONCLUDING_DOHA } from '@/data/chalisaData';
+import LiquidNavbar from '@/components/LiquidNavbar';
+import JaapCounterModal from '@/components/JaapCounterModal';
 
 export default function Home() {
+  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg' | 'xl'>('lg');
+  const [jaapCount, setJaapCount] = useState<number>(0);
+  const [isJaapOpen, setIsJaapOpen] = useState<boolean>(false);
+
+  // Load saved Jaap count
+  useEffect(() => {
+    try {
+      const savedJaap = localStorage.getItem('hanuman_chalisa_jaap');
+      if (savedJaap) {
+        setJaapCount(parseInt(savedJaap, 10) || 0);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Save Jaap count
+  useEffect(() => {
+    try {
+      localStorage.setItem('hanuman_chalisa_jaap', jaapCount.toString());
+    } catch {
+      // ignore
+    }
+  }, [jaapCount]);
+
+  // Font size classes for Sanskrit text
+  const fontSizeClasses = {
+    sm: 'text-lg sm:text-xl md:text-2xl leading-relaxed sm:leading-loose',
+    md: 'text-xl sm:text-2xl md:text-3xl leading-relaxed sm:leading-loose',
+    lg: 'text-2xl sm:text-3xl md:text-4xl leading-relaxed sm:leading-loose',
+    xl: 'text-3xl sm:text-4xl md:text-5xl leading-relaxed sm:leading-loose',
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <main className="relative min-h-screen bg-[#06070c] text-neutral-100 selection:bg-amber-500/30 selection:text-white">
+      
+      {/* Dynamic Ambient Glowing Liquid Orbs */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-amber-500/10 rounded-full blur-[160px] animate-blob-1" />
+        <div className="absolute top-2/3 right-1/4 w-[500px] h-[500px] bg-orange-600/5 rounded-full blur-[140px] animate-blob-2" />
+      </div>
+
+      {/* Floating Translucent Minimal Navbar */}
+      <LiquidNavbar
+        fontSize={fontSize}
+        setFontSize={setFontSize}
+        onOpenJaap={() => setIsJaapOpen(true)}
+        jaapCount={jaapCount}
+        currentPage="read"
+      />
+
+      <div className="relative max-w-3xl mx-auto px-4 sm:px-6 pt-32 sm:pt-40 pb-24 z-10 flex flex-col items-center">
+        
+        {/* Minimal Clean Header */}
+        <header id="top" className="text-center mb-12 sm:mb-16 w-full overflow-visible">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight overflow-visible">
+            <span className="text-golden-gradient font-serif devanagari-serif inline-block pt-4 pb-2 px-2 overflow-visible">
+              श्री हनुमान चालीसा
+            </span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xs sm:text-sm text-neutral-400 font-light tracking-widest uppercase font-mono mt-1">
+            Shri Hanuman Chalisa
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        </header>
+
+        {/* ================= OPENING DOHAS (SEPARATE BOXES) ================= */}
+        <section className="w-full mb-10 sm:mb-14">
+          <div className="text-center mb-5">
+            <span className="text-xs sm:text-sm font-semibold tracking-widest text-amber-400/90 font-serif devanagari-serif">
+              ॥ दोहा ॥
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-4 sm:gap-5">
+            {OPENING_DOHAS.map((doha) => (
+              <div
+                key={doha.id}
+                className="p-6 sm:p-8 rounded-3xl liquid-glass text-center transition-all duration-300 border border-white/10"
+              >
+                {doha.lines.map((line, idx) => (
+                  <p
+                    key={idx}
+                    className={`font-semibold text-amber-100/95 font-serif devanagari-serif ${fontSizeClasses[fontSize]}`}
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ================= 40 CHAUPAIS (EACH IN SEPARATE BOX) ================= */}
+        <section className="w-full mb-10 sm:mb-14">
+          <div className="text-center mb-5">
+            <span className="text-xs sm:text-sm font-semibold tracking-widest text-amber-400/90 font-serif devanagari-serif">
+              ॥ चौपाई ॥
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-4 sm:gap-5">
+            {CHAUPAIS.map((chaupai) => (
+              <div
+                key={chaupai.id}
+                className="p-6 sm:p-8 rounded-3xl liquid-glass-elevated text-center transition-all duration-300 border border-white/10"
+              >
+                {chaupai.lines.map((line, idx) => (
+                  <p
+                    key={idx}
+                    className={`font-semibold text-amber-100/95 font-serif devanagari-serif ${fontSizeClasses[fontSize]}`}
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ================= CONCLUDING DOHA (SEPARATE BOX) ================= */}
+        <section className="w-full mb-12 sm:mb-16">
+          <div className="text-center mb-5">
+            <span className="text-xs sm:text-sm font-semibold tracking-widest text-amber-400/90 font-serif devanagari-serif">
+              ॥ दोहा ॥
+            </span>
+          </div>
+
+          <div className="p-6 sm:p-8 rounded-3xl liquid-glass text-center transition-all duration-300 border border-white/10">
+            {CONCLUDING_DOHA.lines.map((line, idx) => (
+              <p
+                key={idx}
+                className={`font-semibold text-amber-100/95 font-serif devanagari-serif ${fontSizeClasses[fontSize]}`}
+              >
+                {line}
+              </p>
+            ))}
+          </div>
+        </section>
+
+        {/* ================= MINIMAL FOOTER ================= */}
+        <footer className="w-full flex flex-col items-center text-center pt-8 border-t border-white/10">
+          <p className="text-lg sm:text-2xl font-bold text-golden-gradient font-serif devanagari-serif leading-relaxed mb-4">
+            ॥ सियावर रामचंद्र की जय ॥<br />
+            ॥ पवनसुत हनुमान की जय ॥<br />
+            ॥ उमापति महादेव की जय ॥
+          </p>
+
+          <p className="text-xs text-neutral-500 font-mono">
+            Shri Hanuman Chalisa
+          </p>
+        </footer>
+
+      </div>
+
+      {/* 108 Japa Mala Modal */}
+      <JaapCounterModal
+        isOpen={isJaapOpen}
+        onClose={() => setIsJaapOpen(false)}
+        count={jaapCount}
+        setCount={setJaapCount}
+      />
+
+    </main>
   );
 }
