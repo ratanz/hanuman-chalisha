@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     '108 Japa Counter',
     'Sanskrit',
   ],
+  other: {
+    'darkreader-lock': '', // Prevents DarkReader extension from altering styles & injecting attributes
+  },
 };
 
 export default function RootLayout({
@@ -46,9 +49,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${outfit.variable} ${notoSerifDevanagari.variable} dark scroll-smooth`}
     >
-      <body className="min-h-screen font-sans bg-[#06070c] text-neutral-100 antialiased selection:bg-amber-500/30 selection:text-white">
+      <head>
+        <meta name="darkreader-lock" content="" />
+      </head>
+      <body 
+        suppressHydrationWarning
+        className="min-h-screen font-sans bg-[#06070c] text-neutral-100 antialiased selection:bg-amber-500/30 selection:text-white"
+      >
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>

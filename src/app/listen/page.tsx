@@ -261,16 +261,16 @@ export default function ListenPage() {
       <LiquidNavbar currentPage="listen" />
 
       {/* ================= REFINED COLOROS/APPLE-INSPIRED LIQUID GLASS AUDIO WIDGET ================= */}
-      <div className="relative flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-14 z-10">
+      <div className="relative flex-1 flex flex-col items-center justify-center px-3.5 sm:px-6 pt-20 sm:pt-24 pb-10 sm:pb-14 z-10">
         
-        <div className="w-full max-w-sm sm:max-w-md liquid-glass border border-white/[0.14] rounded-[32px] p-6 sm:p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),_inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-3xl flex flex-col items-center relative overflow-hidden transition-all duration-500">
+        <div className="w-full max-w-[340px] xs:max-w-sm sm:max-w-md liquid-glass border border-white/[0.14] rounded-[28px] sm:rounded-[32px] p-5 sm:p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),_inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-3xl flex flex-col items-center relative overflow-hidden transition-all duration-500">
           
           {/* Subtle Liquid Glass Glow Accents */}
           <div className="absolute -top-20 -left-20 w-44 h-44 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-20 -right-20 w-44 h-44 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
 
           {/* Central Sacred Divine Emblem */}
-          <div className="relative mb-6 mt-1 flex items-center justify-center">
+          <div className="relative mb-5 sm:mb-6 mt-1 flex items-center justify-center">
             {/* Ambient Pulsing Glow Rings when Playing */}
             <div 
               className={`absolute inset-0 rounded-full bg-amber-500/25 blur-2xl transition-all duration-700 ${
@@ -279,7 +279,7 @@ export default function ListenPage() {
             />
             
             {/* Main Emblem Disk */}
-            <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full liquid-glass-elevated border border-amber-500/30 flex flex-col items-center justify-center shadow-[0_0_35px_rgba(245,158,11,0.22)]">
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full liquid-glass-elevated border border-amber-500/30 flex flex-col items-center justify-center shadow-[0_0_35px_rgba(245,158,11,0.22)]">
               
               {/* Sacred ॐ Symbol */}
               <span className="text-4xl sm:text-5xl font-serif text-golden-gradient select-none drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]">
