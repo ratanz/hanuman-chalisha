@@ -144,20 +144,6 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-        {/* ================= MINIMAL FOOTER ================= */}
-        <footer className="w-full flex flex-col items-center text-center pt-8 border-t border-white/10">
-          <p className="text-lg sm:text-2xl font-bold text-golden-gradient font-serif devanagari-serif leading-relaxed mb-4">
-            ॥ सियावर रामचंद्र की जय ॥<br />
-            ॥ पवनसुत हनुमान की जय ॥<br />
-            ॥ उमापति महादेव की जय ॥
-          </p>
-
-          <p className="text-xs text-neutral-500 font-mono">
-            Shri Hanuman Chalisa
-          </p>
-        </footer>
-
       </div>
 
       {/* 108 Japa Mala Modal */}
