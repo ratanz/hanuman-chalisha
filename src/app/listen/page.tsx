@@ -11,180 +11,65 @@ import {
   VolumeX, 
   BookOpen 
 } from 'lucide-react';
-import { YOUTUBE_VIDEO_ID } from '@/data/chalisaData';
+import { AUDIO_FILE_PATH } from '@/data/chalisaData';
 import LiquidNavbar from '@/components/LiquidNavbar';
 
-// Global YouTube interface
-declare global {
-  interface Window {
-    YT: {
-      Player: new (
-        elementId: string | HTMLElement,
-        options: {
-          videoId: string;
-          playerVars?: Record<string, unknown>;
-          events?: {
-            onReady?: (event: { target: YTPlayerInstance }) => void;
-            onStateChange?: (event: { data: number; target: YTPlayerInstance }) => void;
-            onError?: (event: unknown) => void;
-          };
-        }
-      ) => YTPlayerInstance;
-    };
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
-
-interface YTPlayerInstance {
-  playVideo: () => void;
-  pauseVideo: () => void;
-  seekTo: (seconds: number, allowSeekAhead?: boolean) => void;
-  getCurrentTime: () => number;
-  getDuration: () => number;
-  mute: () => void;
-  unMute: () => void;
-}
-
 export default function ListenPage() {
-  const playerRef = useRef<YTPlayerInstance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(581); // 9:41
+  const [duration, setDuration] = useState<number>(581); // Fallback ~9:41
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isPlayerReady, setIsPlayerReady] = useState<boolean>(false);
   
   // Track when user is actively dragging the scrubber
   const isScrubbingRef = useRef<boolean>(false);
+  const rafRef = useRef<number | null>(null);
 
-  // Initialize YouTube IFrame API once on component mount
+  // Smooth continuous timeline tracking at 60fps when audio is playing
   useEffect(() => {
-    let isMounted = true;
-
-    const createPlayer = () => {
-      if (!isMounted) return;
-      if (typeof window.YT === 'undefined' || !window.YT.Player) return;
-      if (playerRef.current) return; // Prevent duplicate instantiation
-
-      try {
-        new window.YT.Player('yt-listen-frame', {
-          videoId: YOUTUBE_VIDEO_ID,
-          playerVars: {
-            controls: 0,
-            disablekb: 1,
-            fs: 0,
-            modestbranding: 1,
-            rel: 0,
-            showinfo: 0,
-            playsinline: 1,
-            autoplay: 0,
-            origin: typeof window !== 'undefined' ? window.location.origin : '',
-          },
-          events: {
-            onReady: (event) => {
-              if (!isMounted) return;
-              playerRef.current = event.target;
-              setIsPlayerReady(true);
-              const dur = event.target.getDuration();
-              if (dur && dur > 0) setDuration(dur);
-            },
-            onStateChange: (event) => {
-              if (!isMounted) return;
-              // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
-              if (event.data === 1) {
-                setIsPlaying(true);
-                const dur = event.target.getDuration();
-                if (dur && dur > 0) setDuration(dur);
-                const cur = event.target.getCurrentTime();
-                if (typeof cur === 'number' && !isNaN(cur)) {
-                  setCurrentTime(cur);
-                }
-              } else if (event.data === 2) {
-                setIsPlaying(false);
-              } else if (event.data === 0) {
-                setIsPlaying(false);
-                setCurrentTime(0);
-                event.target.seekTo(0, true);
-              }
-            },
-          },
-        });
-      } catch (err) {
-        console.error('Failed to initialize YouTube player:', err);
-      }
-    };
-
-    if (typeof window.YT !== 'undefined' && window.YT.Player) {
-      createPlayer();
-    } else {
-      if (!document.getElementById('yt-iframe-script')) {
-        const tag = document.createElement('script');
-        tag.id = 'yt-iframe-script';
-        tag.src = 'https://www.youtube.com/iframe_api';
-        document.head.appendChild(tag);
-      }
-      window.onYouTubeIframeAPIReady = createPlayer;
+    if (!isPlaying) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      return;
     }
 
-    return () => {
-      isMounted = false;
+    const updateLoop = () => {
+      if (audioRef.current && !isScrubbingRef.current) {
+        setCurrentTime(audioRef.current.currentTime);
+      }
+      rafRef.current = requestAnimationFrame(updateLoop);
     };
-  }, []); // Run ONCE on mount
 
-  // High-reliability interval polling audio position from YouTube ground truth
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-
-    if (isPlaying) {
-      intervalId = setInterval(() => {
-        if (playerRef.current && !isScrubbingRef.current) {
-          try {
-            const time = playerRef.current.getCurrentTime();
-            if (typeof time === 'number' && !isNaN(time)) {
-              setCurrentTime(time);
-            }
-            const dur = playerRef.current.getDuration();
-            if (dur && dur > 0 && dur !== duration) {
-              setDuration(dur);
-            }
-          } catch {
-            // ignore
-          }
-        }
-      }, 200);
-    }
+    rafRef.current = requestAnimationFrame(updateLoop);
 
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isPlaying, duration]);
+  }, [isPlaying]);
 
   // Audio Playback Controls
   const togglePlay = useCallback(() => {
-    if (!playerRef.current) return;
+    if (!audioRef.current) return;
     if (isPlaying) {
-      playerRef.current.pauseVideo();
-      setIsPlaying(false);
+      audioRef.current.pause();
     } else {
-      playerRef.current.playVideo();
-      setIsPlaying(true);
-      const time = playerRef.current.getCurrentTime();
-      if (typeof time === 'number' && !isNaN(time)) {
-        setCurrentTime(time);
-      }
+      audioRef.current.play().catch((err) => {
+        console.error('Audio play error:', err);
+      });
     }
   }, [isPlaying]);
 
   const rewind10 = () => {
-    if (!playerRef.current) return;
-    const target = Math.max(0, currentTime - 10);
-    playerRef.current.seekTo(target, true);
+    if (!audioRef.current) return;
+    const target = Math.max(0, audioRef.current.currentTime - 10);
+    audioRef.current.currentTime = target;
     setCurrentTime(target);
   };
 
   const forward10 = () => {
-    if (!playerRef.current) return;
-    const target = Math.min(duration, currentTime + 10);
-    playerRef.current.seekTo(target, true);
+    if (!audioRef.current) return;
+    const target = Math.min(duration, audioRef.current.currentTime + 10);
+    audioRef.current.currentTime = target;
     setCurrentTime(target);
   };
 
@@ -200,25 +85,22 @@ export default function ListenPage() {
   const handleScrubberMouseUp = (e: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => {
     isScrubbingRef.current = false;
     const newTime = parseFloat((e.currentTarget as HTMLInputElement).value);
-    if (playerRef.current) {
-      playerRef.current.seekTo(newTime, true);
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
       setCurrentTime(newTime);
       if (!isPlaying) {
-        playerRef.current.playVideo();
-        setIsPlaying(true);
+        audioRef.current.play().catch((err) => {
+          console.error('Audio play error:', err);
+        });
       }
     }
   };
 
   const toggleMute = () => {
-    if (!playerRef.current) return;
-    if (isMuted) {
-      playerRef.current.unMute();
-      setIsMuted(false);
-    } else {
-      playerRef.current.mute();
-      setIsMuted(true);
-    }
+    if (!audioRef.current) return;
+    const nextMuted = !isMuted;
+    audioRef.current.muted = nextMuted;
+    setIsMuted(nextMuted);
   };
 
   const formatTime = (secs: number) => {
@@ -233,6 +115,28 @@ export default function ListenPage() {
   return (
     <main className="relative min-h-screen bg-[#06070c] text-neutral-100 selection:bg-amber-500/30 selection:text-white flex flex-col justify-between overflow-hidden">
       
+      {/* High-Quality Native HTML5 Audio Element */}
+      <audio
+        ref={audioRef}
+        src={AUDIO_FILE_PATH}
+        preload="metadata"
+        onLoadedMetadata={(e) => {
+          const d = e.currentTarget.duration;
+          if (d && !isNaN(d) && d > 0) {
+            setDuration(d);
+          }
+          setIsPlayerReady(true);
+        }}
+        onCanPlay={() => setIsPlayerReady(true)}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => {
+          setIsPlaying(false);
+          setCurrentTime(0);
+          if (audioRef.current) audioRef.current.currentTime = 0;
+        }}
+      />
+
       {/* Dynamic Ambient Glowing Liquid Orbs */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div 
@@ -245,16 +149,6 @@ export default function ListenPage() {
             isPlaying ? 'bg-orange-600/12 animate-blob-2' : 'bg-orange-600/06'
           }`} 
         />
-      </div>
-
-      {/* Non-throttled Invisible YouTube Audio Container */}
-      <div 
-        id="yt-audio-container" 
-        className="fixed bottom-0 left-0 w-64 h-36 opacity-0 pointer-events-none -z-50 overflow-hidden"
-        style={{ clipPath: 'inset(100%)' }}
-        aria-hidden="true"
-      >
-        <div id="yt-listen-frame" />
       </div>
 
       {/* Top Floating Navbar with Read Link */}
@@ -325,7 +219,7 @@ export default function ListenPage() {
               </span>
             </h1>
             <p className="text-[11px] sm:text-xs text-neutral-400 font-mono tracking-widest uppercase">
-              Sacred Chanting
+              Sacred Chanting • High Fidelity
             </p>
           </div>
 
@@ -336,7 +230,7 @@ export default function ListenPage() {
               {/* Background Inactive Track */}
               <div className="absolute inset-0 h-1.5 top-1/2 -translate-y-1/2 bg-white/[0.12] rounded-full overflow-hidden" />
 
-              {/* Layer 1: Ambient Ethereal Glow Bloom (Soft blurred aura like in reference image) */}
+              {/* Layer 1: Ambient Ethereal Glow Bloom (Soft blurred aura) */}
               <div 
                 className="absolute top-1/2 -translate-y-1/2 h-2.5 bg-gradient-to-r from-amber-400 via-amber-300 to-white rounded-full blur-[7px] opacity-80 pointer-events-none transition-all duration-150"
                 style={{ width: `${progressPercent}%` }}

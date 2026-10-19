@@ -1,6 +1,7 @@
 import { ChalisaVerse } from '../types/chalisa';
 
 export const YOUTUBE_VIDEO_ID = 'AETFvQonfV8';
+export const AUDIO_FILE_PATH = '/audio/Shree%20Hanuman%20Chalisa%20-%20Hariharan.mp3';
 
 export const OPENING_DOHAS: ChalisaVerse[] = [
   {
